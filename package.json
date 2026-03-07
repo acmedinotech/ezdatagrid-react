@@ -1,6 +1,6 @@
 {
   "name": "@acmedinotech/ezdatagrid-react",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A lightweight, fast, and flexible dynamic datagrid display & editor for React",
   "type": "module",
   "main": "./dist/index.cjs",
