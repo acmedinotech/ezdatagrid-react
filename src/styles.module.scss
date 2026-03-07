@@ -1,0 +1,228 @@
+:root {
+  // THEME VARIABLES
+  --row-header-bgcolor: #999;
+  --row-header-color: black;
+  --row-odd-bgcolor: #cfcfcf;
+  --row-odd-color: black;
+  --row-even-bgcolor: #efefef;
+  --row-even-color: black;
+
+  --cell-outline: 2px solid red;
+  --row-outline: 1px solid lightsalmon;
+  --table-outline: 1px solid rgb(2, 3, 2);
+  --transition-outline: 0.1s;
+}
+
+.ezdatagrid {
+  [data-ezdg-theme="blue-01"] {
+    --row-header-bgcolor: #3d4890;
+    --row-header-color: rgb(190, 181, 181);
+    --row-odd-bgcolor: #71859b;
+    --row-odd-color: white;
+    --row-even-bgcolor: #4b75d7;
+    --row-even-color: white;
+
+    --cell-outline: 1px solid #ff0000;
+    --row-outline: 1px solid black;
+    --table-outline: 1px solid green;
+  }
+  // END: THEME VARIABLES
+
+  // @todo theme vars?
+  font-family: Menlo, Monaco, 'Courier New', monospace;
+  font-size: .9em;
+
+  // ROW FLASH
+  [data-ezdg-flash="add"] {
+    outline: 1px solid yellow;
+    input,
+    select,
+    textarea {
+      transition: 0.6s;
+    }
+    &:hover {
+      input,
+      select,
+      textarea {
+        background-color: lightyellow;
+      }
+    }
+  }
+
+  [data-ezdg-flash="created"] {
+    --row-odd-bgcolor: lightgreen;
+    --row-odd-color: white;
+    --row-even-bgcolor: greenyellow;
+    --row-even-color: white;
+  }
+
+  [data-ezdg-flash="modified"] {
+    --row-odd-bgcolor: lightyellow;
+    --row-even-bgcolor: lightpink;
+  }
+  // END: ROW FLASH
+
+  button {
+    font-size: .9em;
+    padding: 1px 2px;
+  }
+
+  // UTILITIES
+  .toolbar-float {
+    // position: fixed;
+    background-color: white;
+    outline: 2px solid black;
+    transition: display .5s;
+  }
+
+  [data-ezdg-decorators*="small"] {
+    font-size: .9em;
+  }
+
+  [data-ezdg-flex] {
+    display: flex;
+    // justify-content: space-between;
+  }
+
+  [data-ezdg-flex*="wrap"] {
+    flex-wrap: wrap;
+  }
+
+  [data-ezdg-flex*="gap"] {
+    gap: 4px;
+  }
+
+  [data-ezdg-flex*="dir-col"] {
+    flex-direction: column;
+  }
+  // END: UTILITIES
+
+  // TABLE
+  [data-ezdg-table] {
+    flex-direction: column;
+    justify-content: space-between;
+    overflow: scroll;
+    overflow-x: scroll;
+    width: 100%;
+    border-top: 1px solid grey;
+    transition: var(--transition-outline);
+
+    // &:hover {
+    //   outline: var(--table-outline);
+    // }
+  }
+
+  // ROW: 2 to 32-column variants defined in next section
+  // @todo shift grid-template-columns to cssvar
+  [data-ezdg-row] {
+    display: grid;
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 4px;
+    padding: 2px 0;
+    transition: .75s;
+
+    &:hover {
+      outline: var(--row-outline);
+    }
+
+    &[data-ezdg-rowfocus] {
+      // outline: 1px solid red;
+      --row-even-bgcolor: lightsalmon;
+      --row-odd-bgcolor: lightblue;
+    }
+
+    &[data-ezdg-nohover]:hover {
+      outline: 0;
+    }
+
+    &:nth-child(odd) {
+      background-color: var(--row-odd-bgcolor);
+    }
+
+    &:nth-child(even) {
+      background-color: var(--row-even-bgcolor);
+    }
+
+    &[data-ezdg-nobgcolor] {
+      background-color: initial;
+    }
+
+    &[data-ezdg-header] {
+      color: var(--row-header-color);
+      background-color: var(--row-header-bgcolor);
+      border-bottom: 1px solid lightcoral;
+      [data-ezdg-cell] {
+        font-weight: bold;
+      }
+    }
+  }
+
+  @for $i from 2 to 32 {
+    [data-ezdg-row="#{$i}"] {
+      grid-template-columns: repeat(#{$i}, 1fr);
+    }
+  }
+
+  // CELL
+  [data-ezdg-cell] {
+    padding: 2px 4px;
+    min-width: 0.5fr;
+    overflow-x: scroll;
+    transition: var(--transition-outline);
+
+    &:hover {
+      outline: var(--cell-outline);
+    }
+
+    input {
+      width: 100%;
+      padding: 1px;
+      border: 1px solid #ccc;
+      margin: 0;
+      -webkit-box-sizing: border-box;
+      -moz-box-sizing: border-box;
+      -o-box-sizing: border-box;
+      -ms-box-sizing: border-box;
+      box-sizing: border-box;
+    }
+
+    select {
+      width: 100%;
+      field-sizing: content;
+      min-height: 1em;
+      max-height: 15em;
+    }
+
+    textarea {
+      width: 98%;
+      min-height: 1em;
+      max-height: 20em;
+      field-sizing: content;
+    }
+  }
+
+    // @todo test efficacy
+  [data-ezdg-cell="spacer"] {
+    flex-basis: 1;
+    // outline: 1px solid brown;
+  }
+
+  // @todo test efficacy
+  [data-ezdg-cell="all"] {
+    grid-column: auto;
+    outline: 1px solid brown;
+  }
+
+  @for $i from 2 to 32 {
+    [data-ezdg-cell="#{$i}"] {
+      grid-column: auto / span #{$i};
+      // min-width: #{$i}fr;
+    }
+  }
+
+  [data-ezdg-error] {
+    outline: 1px solid lightcoral;
+    color: red;
+  }
+}
