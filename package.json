@@ -29,7 +29,8 @@
     "build": "vite build && tsc --project tsconfig.build.json",
     "dev": "vite build --watch",
     "lint": "tsc --noEmit",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build",
+    "release": "./scripts/publish.sh"
   },
   "peerDependencies": {
     "react": ">=18.0.0",
