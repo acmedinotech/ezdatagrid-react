@@ -1,3 +1,6 @@
+import * as _formComponents from './components.formControls';
+export const FormControls = _formComponents;
+
 import * as CellComponents from './components.cell';
 export const Cell = CellComponents.Cell;
 export const CellEdit = CellComponents.CellEdit;
