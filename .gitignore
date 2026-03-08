@@ -6,3 +6,4 @@ dist/
 playground/
 tmp/
 yarn.lock
+coverage/
