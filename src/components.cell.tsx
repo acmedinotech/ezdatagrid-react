@@ -17,15 +17,14 @@ import {
 } from './types';
 
 export const Cell = (
-	props: {
-		bold?: boolean;
+	{Before, After, ...props}: {
 		className?: string;
 	} & CellBeforeAfterProps &
 		React.PropsWithChildren<Partial<ColumnDef>>
 ) => {
 	return (
 		<div data-ezdg-cell={props.colSpan ?? 1} className={props.className}>
-			{props.children}
+			{Before && <Before />}{props.children}{After && <After />}
 		</div>
 	);
 };
@@ -65,7 +64,6 @@ export const CellEdit = ({
 			tabIndex={status == 'edit' ? undefined : 0}
 			className={props.className}
 			data-ezdg-cell={`${props.colSpan ?? 1}`}
-			data-bold={props.bold}
 			data-ezdg-colindex={`${colId}`}
 			data-ezdg-decorators={props.decorators}
 			onDoubleClick={(e) => {
