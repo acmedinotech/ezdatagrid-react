@@ -16,14 +16,40 @@ import {
 	RowContext,
 } from './types';
 
+/**
+ * 
+ * @param param0 
+ * @returns 
+ */
 export const Cell = (
-	{Before, After, ...props}: {
+	{ Before, After, decorators, ...props }: {
 		className?: string;
+		tabIndex?: number;
+		decorators?: string;
+		onClick?: (e: React.MouseEvent) => void;
+		onDoubleClick?: (e: React.MouseEvent) => void;
+		onKeyDown?: (e: React.KeyboardEvent) => void;
+		onKeyUp?: (e: React.KeyboardEvent) => void;
+		onMouseEnter?: (e: React.MouseEvent) => void;
+		onMouseOver?: (e: React.MouseEvent) => void;
+		onMouseLeave?: (e: React.MouseEvent) => void;
 	} & CellBeforeAfterProps &
 		React.PropsWithChildren<Partial<ColumnDef>>
 ) => {
 	return (
-		<div data-ezdg-cell={props.colSpan ?? 1} className={props.className}>
+		<div data-ezdg-cell={props.colSpan ?? 1}
+			data-ezdg-colindex={props.id}
+			data-ezdg-decorators={decorators}
+			tabIndex={props.tabIndex}
+			className={props.className}
+			onClick={props.onClick}
+			onDoubleClick={props.onDoubleClick}
+			onKeyDown={props.onKeyDown}
+			onKeyUp={props.onKeyUp}
+			onMouseEnter={props.onMouseEnter}
+			onMouseOver={props.onMouseOver}
+			onMouseLeave={props.onMouseLeave}
+		>
 			{Before && <Before />}{props.children}{After && <After />}
 		</div>
 	);
@@ -60,12 +86,12 @@ export const CellEdit = ({
 	};
 
 	return (
-		<div
+		<Cell
 			tabIndex={status == 'edit' ? undefined : 0}
 			className={props.className}
-			data-ezdg-cell={`${props.colSpan ?? 1}`}
-			data-ezdg-colindex={`${colId}`}
-			data-ezdg-decorators={props.decorators}
+			colSpan={props.colSpan}
+			id={colId}
+			decorators={props.decorators}
 			onDoubleClick={(e) => {
 				if (handleOpenEdit(e)) {
 					e.preventDefault();
@@ -117,7 +143,7 @@ export const CellEdit = ({
 			{Before && <Before />}
 			{props.children}
 			{After && <After />}
-		</div>
+		</Cell>
 	);
 };
 

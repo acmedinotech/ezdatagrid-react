@@ -1,8 +1,9 @@
 import { render, screen } from "@testing-library/react";
-import { Cell } from "./components.cell";
+import { Cell, CellEdit } from "./components.cell";
+import { EMPTY_ROW_CONTEXT } from "./types";
 
 describe('module: components.cell', () => {
-    describe('Cell', () => {
+    describe.only('Cell', () => {
         it('renders Cell {children}', () => {
             render(<Cell>test</Cell>);
 
@@ -11,12 +12,14 @@ describe('module: components.cell', () => {
             expect(htmlCell.dataset.ezdgCell).toEqual("1")
         })
         it('renders Cell {colSpan, className, children}', () => {
-            render(<Cell colSpan={2} className="test-class"><b>test</b></Cell>);
+            const cell = render(<Cell colSpan={2} className="test-class"><b>test</b></Cell>);
 
-            const htmlCell = screen.getByText('test');
-            expect(htmlCell.tagName.toLowerCase()).toEqual("b");
-            expect(htmlCell).toHaveClass("test-class");
-            expect(htmlCell.dataset.ezdgCell).toEqual("2")
+            const bCell = screen.getByText('test');
+            expect(bCell.tagName.toLowerCase()).toEqual("b");
+            
+            const divCell = bCell.parentElement;
+            expect(divCell).toHaveClass("test-class");
+            expect(divCell?.dataset.ezdgCell).toEqual("2")
         })
         it('renders Cell {Before, After, children}', () => {
             render(<Cell Before={() => <div className="before">Before</div>} After={() => <div className="after">After</div>}>test</Cell>);
@@ -31,5 +34,16 @@ describe('module: components.cell', () => {
             expect(after).toBeInTheDocument();
             expect(after).toHaveClass("after");
         })
+
+        // @todo validate on* handlers
+        // @todo validate {tagIndex, decorators, id}
     });
+    describe('CellEdit', () => {
+        it('renders CellEdit {children}', () => {
+            render(<CellEdit rowContext={EMPTY_ROW_CONTEXT}>test</CellEdit>);
+            const htmlCell = screen.getByText('test');
+            expect(htmlCell).toBeInTheDocument();
+            expect(htmlCell.dataset.ezdgCell).toEqual("1")
+        })
+    })
 });
