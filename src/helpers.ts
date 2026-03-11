@@ -305,7 +305,7 @@ export const htmlFindSaveButtons = (parent?: Element | null) =>
 
 export const htmlFindEditAddButtons = (parent?: Element | null) =>
 	parent?.querySelectorAll(
-		'[data-ezdg-action="$edit-row"], [data-ezdg-action="$add-row"]'
+		'[data-ezdg-action="$edit-row"], [data-ezdg-action="$table_add-row"]'
 	);
 
 /**

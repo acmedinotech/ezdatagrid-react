@@ -115,7 +115,7 @@ export const TableAddRowButton = ({
 }: EZDataGridProps & { tableContext: EZDGTableContext }) => {
 	return (
 		<button
-			data-ezdg-action="$add-row"
+			data-ezdg-action="$table_add-row"
 			disabled={props.readOnly}
 			onClick={(e) => {
 				const table = e.currentTarget.closest('[data-ezdg-table');

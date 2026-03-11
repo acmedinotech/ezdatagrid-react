@@ -122,7 +122,7 @@ export const RowEditor = (props: RowEditorProps) => {
 		}
 	};
 
-	// deprecated?
+	console.log('-> ', rowState)
 	const RowSpanAllCols = (
 		props: { isError?: boolean } & React.PropsWithChildren
 	) => {
@@ -192,9 +192,9 @@ export const RowEditor = (props: RowEditorProps) => {
 	};
 
 	const readOnly = props.readOnly ?? false;
-	const isView = readOnly || rowState.status == 'view';
+	const isAdd = !readOnly && rowState.data.__flash == 'add';
+	const isView = readOnly ||(!isAdd && rowState.status == 'view');
 	const isEdit = !readOnly && rowState.status == 'edit';
-	const isAdd = !readOnly && rowState.status == 'add';
 
 	return (
 		<>
@@ -219,7 +219,7 @@ export const RowEditor = (props: RowEditorProps) => {
 						colDef={props.colsMap[col.id]}
 						rowData={rowState.data}
 						id={col.id}
-						status={rowState.status}
+						status={isAdd || isEdit ? 'edit' : 'view'}
 						validationError={rowState.errorMap?.[col.id]}
 					/>
 				))}
