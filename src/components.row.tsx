@@ -48,7 +48,7 @@ export const Row = (
 
 	return (
 		<div
-			id={volatileId}
+			id={`row-${props.rowIndex}`}
 			tabIndex={0}
 			className={props.className}
 			style={{
@@ -122,7 +122,6 @@ export const RowEditor = (props: RowEditorProps) => {
 		}
 	};
 
-	console.log('-> ', rowState)
 	const RowSpanAllCols = (
 		props: { isError?: boolean } & React.PropsWithChildren
 	) => {
@@ -195,6 +194,7 @@ export const RowEditor = (props: RowEditorProps) => {
 	const isAdd = !readOnly && rowState.data.__flash == 'add';
 	const isView = readOnly ||(!isAdd && rowState.status == 'view');
 	const isEdit = !readOnly && rowState.status == 'edit';
+	console.log({readOnly, flash: rowState.data.__flash, status: rowState.status, isAdd, isView, isEdit})
 
 	return (
 		<>

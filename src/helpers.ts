@@ -328,7 +328,7 @@ export const LogicalOperatorOptions = {
 };
 
 export const SortOptions = {
-	'': '----',
+	'': '<sort>',
 	asc: 'asc',
 	dsc: 'desc',
 };

@@ -126,7 +126,7 @@ export const TableHeaderToolbarRow = ({
 	totalColumns: number;
 }) => {
 	const [tbarState, setTbarState] = useState({
-		isExpanded: true,
+		isExpanded: false,
 		searchParams: { filters: {}, sorts: {}, operators: {} } as SearchParams,
 		formData: {} as StructRecordAny,
 	});
@@ -331,6 +331,7 @@ export const TableHeaderToolbarRow = ({
 				columns={totalColumns}
 				hide={!isExpanded}
 				className={styles['toolbar-float']}
+				rowIndex={'tableheader-toolbar'}
 			>
 				<CellRowTools />
 				{Object.entries(normColsMap).map(([colId, def]) => (

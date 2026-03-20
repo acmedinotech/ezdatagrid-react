@@ -156,7 +156,7 @@ export const CellInputWrapper = ({
 			return <DateInputView {...colDef} value={defaultValue} />;
 		default:
 			return colDef.text?.isMultiline ? (
-				<textarea name={colDef.id}>{defaultValue}</textarea>
+				<textarea name={colDef.id} defaultValue={defaultValue as string}></textarea>
 			) : (
 				<input
 					type="text"

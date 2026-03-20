@@ -122,6 +122,7 @@ export const TableAddRowButton = ({
 				// @todo need newRec generator
 				// @todo row-id generation
 				tableContext.addNewRow({
+					id: `*${Date.now()}`,
 					...props.hiddenValues,
 					__flash: 'add',
 				});
