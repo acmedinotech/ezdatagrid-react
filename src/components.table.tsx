@@ -354,7 +354,31 @@ export const TableFooterToolbar = (props: EZDataGridProps & { tableContext: EZDG
 	</Row>;
 };
 
-export const useBulkEditor = () => {
+export const FormEditor = ({ columnDefs }: { columnDefs: ColumnDef[] }) => {
+	return (
+		<div data-ezdg-table>
+			{columnDefs.map((colDef) => (
+				<div data-ezdg-row="2" key={colDef.id}>
+					<div data-ezdg-cell>
+						<label htmlFor={`formeditor_${colDef.id}`}>
+							{colDef.label ?? colDef.id}
+						</label>
+					</div>
+					<div data-ezdg-cell>
+						<input
+							id={`formeditor_${colDef.id}`}
+							name={colDef.id}
+							type="text"
+							placeholder={colDef.label ?? colDef.id}
+						/>
+					</div>
+				</div>
+			))}
+		</div>
+	);
+};
+
+export const useBulkEditor = (props: EZDataGridProps) => {
 	const ref = useRef<{selectedRows: Record<string, boolean>}>({selectedRows: {}});
 	const getSelectedRows = () => {
 		return ref.current.selectedRows;
@@ -386,6 +410,7 @@ export const useBulkEditor = () => {
 			{isOpen && <Modal closeFn={()=> setIsOpen(false)}>
 				<div style={{ width: '500px', height: '500px', backgroundColor: 'white' }}>
 					<h1>Bulk Edit</h1>
+					<FormEditor columnDefs={props.columnDefs} />
 				</div>
 			</Modal>}
 		</div>
@@ -478,7 +503,7 @@ export const EZDataGrid = ({
 
 	const totalColumns = context.getColumnsWidth();
 
-	const bulkEditor = useBulkEditor();
+	const bulkEditor = useBulkEditor(props);
 
 	return (
 		<EZDGTableContextProvider.Provider value={context}>
