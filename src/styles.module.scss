@@ -15,6 +15,7 @@
 
 .ezdatagrid {
   color: black;
+
   [data-ezdg-theme="blue-01"] {
     --row-header-bgcolor: #3d4890;
     --row-header-color: rgb(190, 181, 181);
@@ -27,21 +28,28 @@
     --row-outline: 1px solid black;
     --table-outline: 1px solid green;
   }
+
   // END: THEME VARIABLES
 
   // @todo theme vars?
-  font-family: Menlo, Monaco, 'Courier New', monospace;
+  font-family: Menlo,
+  Monaco,
+  'Courier New',
+  monospace;
   font-size: .9em;
 
   // ROW FLASH
   [data-ezdg-flash="add"] {
     outline: 1px solid yellow;
+
     input,
     select,
     textarea {
       transition: 0.6s;
     }
+
     &:hover {
+
       input,
       select,
       textarea {
@@ -61,6 +69,7 @@
     --row-odd-bgcolor: lightyellow;
     --row-even-bgcolor: lightpink;
   }
+
   // END: ROW FLASH
 
   button {
@@ -81,7 +90,7 @@
     }
   }
 
-  button + button {
+  button+button {
     margin-left: 2px;
   }
 
@@ -119,11 +128,40 @@
     gap: 2px 4px
   }
 
+  [data-ezdg-toolbar*="right"] {
+    justify-content: flex-end;
+  }
+
+  [data-ezdg-toolbar*="left"] {
+    justify-content: flex-start;
+  }
+
+  [data-ezdg-toolbar*="center"] {
+    justify-content: center;
+  }
   [data-ezdg-toolbar*="border"] {
     border: 1px solid black;
     border-radius: 4px;
     padding: 2px;
   }
+
+  [data-ezdg-backdrop] {
+    background: rgba(0, 0, 0, 0.3);
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  [data-ezdg-modal] {
+    background-color: white; // @todo theme var?
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+  }
+
   // END: UTILITIES
 
   // TABLE
@@ -143,7 +181,7 @@
 
   .buttonBar {
     display: flex;
-     gap: 2px
+    gap: 2px
   }
 
   // ROW: 2 to 32-column variants defined in next section
@@ -189,6 +227,7 @@
       color: var(--row-header-color);
       background-color: var(--row-header-bgcolor);
       border-bottom: 1px solid lightcoral;
+
       [data-ezdg-cell] {
         font-weight: bold;
       }
@@ -212,7 +251,9 @@
       outline: var(--cell-outline);
     }
 
-    input, select, textarea {
+    input,
+    select,
+    textarea {
       &:focus {
         outline: 2px solid red;
       }
@@ -237,7 +278,8 @@
       max-height: 15em;
     }
 
-    textarea, input[type="text"] {
+    textarea,
+    input[type="text"] {
       width: 98%;
       min-height: 1em;
       max-height: 20em;
@@ -246,7 +288,7 @@
     }
   }
 
-    // @todo test efficacy
+  // @todo test efficacy
   [data-ezdg-cell="spacer"] {
     flex-basis: 1;
     // outline: 1px solid brown;

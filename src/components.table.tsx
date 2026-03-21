@@ -24,6 +24,7 @@ import {
 	StructEZDataGridState,
 	StructRecordAny,
 } from './types';
+import { Modal } from './components.utility';
 
 export const getOverlayedColumnDefs = (
 	colDefs: ColumnDef[],
@@ -368,6 +369,7 @@ export const useBulkEditor = () => {
 	}
 
 	const BulkEditAllBar = () => {
+		const [isOpen, setIsOpen] = useState(false);
 		return <div data-ezdg-toolbar="inline,border">
 			<input type="checkbox" name="$bulkedit_select-all" onChange={(e) => {
 				const isChecked = e.target.checked;
@@ -378,9 +380,14 @@ export const useBulkEditor = () => {
 					input.click()
 				});
 			}} />
-			<button>
+			<button onClick={() => setIsOpen(true)}>
 				edit
 			</button>
+			{isOpen && <Modal closeFn={()=> setIsOpen(false)}>
+				<div style={{ width: '500px', height: '500px', backgroundColor: 'white' }}>
+					<h1>Bulk Edit</h1>
+				</div>
+			</Modal>}
 		</div>
 	}
 	return {
