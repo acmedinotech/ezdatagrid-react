@@ -87,22 +87,8 @@ export const RowToolbarView = (props: RowButtonProps & RowEditorProps) => {
 	const readOnly = props.readOnly ?? false;
 	return (
 		<div className={`${styles['buttonBar']}`}>
-			<button
-				data-ezdg-action="$edit-row"
-				title="$edit-row"
-				disabled={!props.dataStore.updateRow || readOnly}
-				onClick={(e) => {
-					const table = e.currentTarget.closest('[data-ezdg-row]');
-					props.rowContext.setStatus('edit');
-					window.setTimeout(() => {
-						documentFocusOnFirstControl(
-							documentFindPriorityFocus(table) ?? table
-						);
-					}, 33);
-				}}
-			>
-				📝
-			</button>
+			<span><input type="checkbox" name="$bulkedit_select-row" value={props.rowContext.getRowIndex()} onChange={(e) => props.toggleBulkFn?.(e.target.checked)} /></span>
+
 			<RowExpandButton {...props} />
 			<RowDebugButton {...props} />
 		</div>
@@ -297,7 +283,7 @@ export const RowToolbarEdit = ({
 }: RowButtonProps & RowEditorProps) => {
 	const tableCtx = useContext(EZDGTableContextProvider);
 	return (
-		<div className={`${styles['buttonBar']}`}>
+		<div className={`${styles['buttonBar']}`}>			
 			<RowUpdateButton {...props} rowContext={rowContext} />
 			<RowCancelButton {...props} rowContext={rowContext} />
 			<RowDebugButton {...props} rowContext={rowContext} />

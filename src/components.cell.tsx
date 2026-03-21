@@ -49,6 +49,15 @@ export const Cell = (
 			onMouseEnter={props.onMouseEnter}
 			onMouseOver={props.onMouseOver}
 			onMouseLeave={props.onMouseLeave}
+			onFocus={(e) => {
+				let found = false;
+				e.currentTarget.querySelectorAll('input, textarea, select').forEach((input) => {
+					if (found) return;
+					if ((input as HTMLInputElement).type == 'hidden') return;
+					found = true;
+					(input as HTMLInputElement).focus();
+				});
+			}}
 		>
 			{Before && <Before />}{props.children}{After && <After />}
 		</div>
@@ -99,18 +108,17 @@ export const CellEdit = ({
 				}
 			}}
 			onKeyDown={(e) => {
+				const isQuickEnter = e.ctrlKey && e.key == 'Enter';
 				/**
 				 * KBbehavior (in-view): Enter: enable editing
 				 */
-				if (e.code == 'Enter' && handleOpenEdit(e)) {
+				if (isQuickEnter && handleOpenEdit(e)) {
 					e.preventDefault();
 					e.stopPropagation();
 					return;
 				} else if (props.rowContext.getRowState().status == 'view') {
 					return;
-				} else if (e.code != 'Enter') {
-					return;
-				} else if (props.type == 'text' && props.text?.isMultiline) {
+				} else if (!isQuickEnter) {
 					return;
 				}
 

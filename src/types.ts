@@ -241,6 +241,7 @@ export type RowEditorProps = {
 	colsMap: Record<string, ColumnDef>;
 	rowData: StructRecordAny;
 	status?: string;
+	toggleBulkFn?: (value: boolean) => void;
 } & EZDataGridProps<StructRecordAny>;
 
 export enum LoadState {
@@ -313,4 +314,4 @@ export type EZDataGridProps<Entity = StructRecordAny> = {
 	ExpandRowComponent?: (props: CellViewProxyProps) => React.ReactNode;
 };
 
-export const ROW_SIDEBAR_COLS = 1;
+export const ROW_SIDEBAR_COLS = 2;

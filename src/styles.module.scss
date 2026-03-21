@@ -113,6 +113,17 @@
   [data-ezdg-flex*="dir-col"] {
     flex-direction: column;
   }
+
+  [data-ezdg-toolbar] {
+    display: flex;
+    gap: 2px 4px
+  }
+
+  [data-ezdg-toolbar*="border"] {
+    border: 1px solid black;
+    border-radius: 4px;
+    padding: 2px;
+  }
   // END: UTILITIES
 
   // TABLE
@@ -128,6 +139,11 @@
     // &:hover {
     //   outline: var(--table-outline);
     // }
+  }
+
+  .buttonBar {
+    display: flex;
+     gap: 2px
   }
 
   // ROW: 2 to 32-column variants defined in next section
@@ -196,6 +212,12 @@
       outline: var(--cell-outline);
     }
 
+    input, select, textarea {
+      &:focus {
+        outline: 2px solid red;
+      }
+    }
+
     input {
       width: 100%;
       padding: 1px;
@@ -215,11 +237,12 @@
       max-height: 15em;
     }
 
-    textarea {
+    textarea, input[type="text"] {
       width: 98%;
       min-height: 1em;
       max-height: 20em;
       field-sizing: content;
+      background-color: white;
     }
   }
 

@@ -1,4 +1,4 @@
-import { createContext, useEffect, useState } from 'react';
+import { createContext, useEffect, useRef, useState } from 'react';
 import { TableAddRowButton } from './components.rowTools';
 import { Cell, CellEdit, CellEditor } from './components.cell';
 import { Select } from './components.formControls';
@@ -109,8 +109,8 @@ export const EZDGTableContextProvider = createContext<EZDGTableContext>({
 		throw new Error('Function not implemented.');
 	},
 	getHiddenValues: () => ({}),
-	addNewRow: () => {},
-	setUiOverlays: () => {},
+	addNewRow: () => { },
+	setUiOverlays: () => { },
 	getUiOverlays: () => {
 		throw new Error('Function not implemented.');
 	},
@@ -342,10 +342,55 @@ export const TableHeaderToolbarRow = ({
 	);
 };
 
-export const TableFooterToolbar = (props: EZDGTableContext) => {
-	return null;
+export const TableFooterToolbar = (props: EZDataGridProps & { tableContext: EZDGTableContext; BulkEditAllBar?: (() => React.ReactNode) }) => {
+	return <Row>
+		<CellEdit colSpan={12} rowContext={EMPTY_ROW_CONTEXT}>
+			<div data-ezdg-toolbar>{props.BulkEditAllBar?.()}
+			<TableAddRowButton
+				{...props}
+			/></div>
+		</CellEdit>
+	</Row>;
 };
 
+export const useBulkEditor = () => {
+	const ref = useRef<{selectedRows: Record<string, boolean>}>({selectedRows: {}});
+	const getSelectedRows = () => {
+		return ref.current.selectedRows;
+	}
+	const resetSelectedRows = () => {
+		ref.current.selectedRows = {};
+	}
+	const makeToggleFn = (rowId: string) => {
+		return (value: boolean) => {
+			ref.current.selectedRows[rowId] = value;
+		}
+	}
+
+	const BulkEditAllBar = () => {
+		return <div data-ezdg-toolbar="inline,border">
+			<input type="checkbox" name="$bulkedit_select-all" onChange={(e) => {
+				const isChecked = e.target.checked;
+				const table = e.currentTarget.closest('[data-ezdg-table]');
+				table?.querySelectorAll('[data-ezdg-row] input[name="$bulkedit_select-row"]')?.forEach((ele) => {
+					const input = ele as HTMLInputElement;
+					if (input.checked == isChecked) { return; }
+					input.click()
+				});
+			}} />
+			<button>
+				edit
+			</button>
+		</div>
+	}
+	return {
+		getSelectedRows,
+		resetSelectedRows,
+		makeToggleFn,
+		BulkEditAllBar,
+		ref: ref.current
+	};
+}
 export const EZDataGrid = ({
 	hiddenValues = {},
 	...props
@@ -385,7 +430,7 @@ export const EZDataGrid = ({
 				.catch((error) => {
 					_setState({ loadState: 3, error });
 				})
-				.finally(() => {});
+				.finally(() => { });
 		},
 		paginate: async (params) => {
 			// @todo
@@ -426,6 +471,8 @@ export const EZDataGrid = ({
 
 	const totalColumns = context.getColumnsWidth();
 
+	const bulkEditor = useBulkEditor();
+
 	return (
 		<EZDGTableContextProvider.Provider value={context}>
 			<div className={styles['ezdatagrid']}>
@@ -442,17 +489,14 @@ export const EZDataGrid = ({
 							colsMap={colsMap}
 							rowData={_row as StructRecordAny}
 							columns={totalColumns}
+							toggleBulkFn={bulkEditor.makeToggleFn(_row._id ?? index)}
 						></RowEditor>
 					))}
-
-					<Row>
-						<CellEdit colSpan={12} rowContext={EMPTY_ROW_CONTEXT}>
-							<TableAddRowButton
-								{...props}
-								tableContext={context}
-							/>
-						</CellEdit>
-					</Row>
+					<TableFooterToolbar
+						{...props}
+						tableContext={context}
+						BulkEditAllBar={bulkEditor.BulkEditAllBar}
+					/>
 				</div>
 			</div>
 		</EZDGTableContextProvider.Provider>
