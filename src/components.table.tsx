@@ -355,25 +355,26 @@ export const TableFooterToolbar = (props: EZDataGridProps & { tableContext: EZDG
 };
 
 export const FormEditor = ({ columnDefs }: { columnDefs: ColumnDef[] }) => {
+	const ControlRow = (colDef: ColumnDef) => {
+		return <div data-ezdg-row="2" key={colDef.id}>
+		<div data-ezdg-cell>
+			<label htmlFor={`formeditor_${colDef.id}`}>
+				{colDef.label ?? colDef.id}
+			</label>
+		</div>
+		<div data-ezdg-cell>
+			<input
+				id={`formeditor_${colDef.id}`}
+				name={colDef.id}
+				type="text"
+				placeholder={colDef.label ?? colDef.id}
+			/>
+		</div>
+	</div>
+	}
 	return (
 		<div data-ezdg-table>
-			{columnDefs.map((colDef) => (
-				<div data-ezdg-row="2" key={colDef.id}>
-					<div data-ezdg-cell>
-						<label htmlFor={`formeditor_${colDef.id}`}>
-							{colDef.label ?? colDef.id}
-						</label>
-					</div>
-					<div data-ezdg-cell>
-						<input
-							id={`formeditor_${colDef.id}`}
-							name={colDef.id}
-							type="text"
-							placeholder={colDef.label ?? colDef.id}
-						/>
-					</div>
-				</div>
-			))}
+			{columnDefs.map(ControlRow)}
 		</div>
 	);
 };

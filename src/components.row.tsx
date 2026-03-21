@@ -98,8 +98,7 @@ export const Row = (
 
 let _rowIndexCounter = 0;
 
-export const RowEditor = (props: RowEditorProps) => {
-	const { columns } = props;
+export const useRowState = (props: Pick<RowEditorProps, 'status' | 'rowData'>) => {
 	const [rowState, setRowState] = useState({
 		status: props.status ?? 'view',
 		isExpanded: false,
@@ -121,6 +120,47 @@ export const RowEditor = (props: RowEditorProps) => {
 			}));
 		}
 	};
+
+	const context: RowContext = {
+		getRowIndex: () => rowState.data._id ?? myRowIndex,
+		getRowState: () => ({ ...rowState }),
+		getRowData: () => rowState.data,
+		getCellValue: (colId, defaultValue) =>
+			rowState.data[colId] ?? defaultValue,
+		setCellValue: (colId, value) => {
+			_setState({
+				data: {
+					...rowState.data,
+					[colId]: value,
+				},
+			});
+		},
+		setDataFrom: (map) => {
+			_setState((s) => {
+				return { ...s, data: { ...s.data, ...map } };
+			});
+		},
+		setStatus: (viewState) => {
+			_setState({ status: viewState });
+		},
+		toggleExpanded: () => {
+			_setState({ isExpanded: !rowState.isExpanded });
+		},
+		updateRowState: (state) => {
+			_setState(state);
+		},
+	};
+
+	return {
+		rowState,
+		context,
+		myRowIndex,
+	};
+};
+
+export const RowEditor = (props: RowEditorProps) => {
+	const { columns } = props;
+	const { rowState, myRowIndex, context } = useRowState(props);
 
 	const RowSpanAllCols = (
 		props: { isError?: boolean } & React.PropsWithChildren
@@ -160,41 +200,11 @@ export const RowEditor = (props: RowEditorProps) => {
 		</>
 	);
 
-	const context: RowContext = {
-		getRowIndex: () => rowState.data._id ?? myRowIndex,
-		getRowState: () => ({ ...rowState }),
-		getRowData: () => rowState.data,
-		getCellValue: (colId, defaultValue) =>
-			rowState.data[colId] ?? defaultValue,
-		setCellValue: (colId, value) => {
-			_setState({
-				data: {
-					...rowState.data,
-					[colId]: value,
-				},
-			});
-		},
-		setDataFrom: (map) => {
-			_setState((s) => {
-				return { ...s, data: { ...s.data, ...map } };
-			});
-		},
-		setStatus: (viewState) => {
-			_setState({ status: viewState });
-		},
-		toggleExpanded: () => {
-			_setState({ isExpanded: !rowState.isExpanded });
-		},
-		updateRowState: (state) => {
-			_setState(state);
-		},
-	};
-
 	const readOnly = props.readOnly ?? false;
 	const isAdd = !readOnly && rowState.data.__flash == 'add';
 	const isView = readOnly ||(!isAdd && rowState.status == 'view');
 	const isEdit = !readOnly && rowState.status == 'edit';
-	console.log({readOnly, flash: rowState.data.__flash, status: rowState.status, isAdd, isView, isEdit})
+	// console.log({readOnly, flash: rowState.data.__flash, status: rowState.status, isAdd, isView, isEdit})
 
 	return (
 		<>
