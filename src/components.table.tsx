@@ -2,7 +2,7 @@ import { createContext, useEffect, useRef, useState } from 'react';
 import { TableAddRowButton } from './components.rowTools';
 import { Cell, CellEdit, CellEditor } from './components.cell';
 import { Select } from './components.formControls';
-import { Row, RowEditor } from './components.row';
+import { Row, RowEditor, useRowState } from './components.row';
 import {
 	asHtmlElement,
 	collectFormRowData,
@@ -25,6 +25,7 @@ import {
 	StructRecordAny,
 } from './types';
 import { Modal } from './components.utility';
+import { useBulkEditor } from './components.bulkEditor';
 
 export const getOverlayedColumnDefs = (
 	colDefs: ColumnDef[],
@@ -347,83 +348,13 @@ export const TableFooterToolbar = (props: EZDataGridProps & { tableContext: EZDG
 	return <Row>
 		<CellEdit colSpan={12} rowContext={EMPTY_ROW_CONTEXT}>
 			<div data-ezdg-toolbar>{props.BulkEditAllBar?.()}
-			<TableAddRowButton
-				{...props}
-			/></div>
+				<TableAddRowButton
+					{...props}
+				/></div>
 		</CellEdit>
 	</Row>;
 };
 
-export const FormEditor = ({ columnDefs }: { columnDefs: ColumnDef[] }) => {
-	const ControlRow = (colDef: ColumnDef) => {
-		return <div data-ezdg-row="2" key={colDef.id}>
-		<div data-ezdg-cell>
-			<label htmlFor={`formeditor_${colDef.id}`}>
-				{colDef.label ?? colDef.id}
-			</label>
-		</div>
-		<div data-ezdg-cell>
-			<input
-				id={`formeditor_${colDef.id}`}
-				name={colDef.id}
-				type="text"
-				placeholder={colDef.label ?? colDef.id}
-			/>
-		</div>
-	</div>
-	}
-	return (
-		<div data-ezdg-table>
-			{columnDefs.map(ControlRow)}
-		</div>
-	);
-};
-
-export const useBulkEditor = (props: EZDataGridProps) => {
-	const ref = useRef<{selectedRows: Record<string, boolean>}>({selectedRows: {}});
-	const getSelectedRows = () => {
-		return ref.current.selectedRows;
-	}
-	const resetSelectedRows = () => {
-		ref.current.selectedRows = {};
-	}
-	const makeToggleFn = (rowId: string) => {
-		return (value: boolean) => {
-			ref.current.selectedRows[rowId] = value;
-		}
-	}
-
-	const BulkEditAllBar = () => {
-		const [isOpen, setIsOpen] = useState(false);
-		return <div data-ezdg-toolbar="inline,border">
-			<input type="checkbox" name="$bulkedit_select-all" onChange={(e) => {
-				const isChecked = e.target.checked;
-				const table = e.currentTarget.closest('[data-ezdg-table]');
-				table?.querySelectorAll('[data-ezdg-row] input[name="$bulkedit_select-row"]')?.forEach((ele) => {
-					const input = ele as HTMLInputElement;
-					if (input.checked == isChecked) { return; }
-					input.click()
-				});
-			}} />
-			<button onClick={() => setIsOpen(true)}>
-				edit
-			</button>
-			{isOpen && <Modal closeFn={()=> setIsOpen(false)}>
-				<div style={{ width: '500px', height: '500px', backgroundColor: 'white' }}>
-					<h1>Bulk Edit</h1>
-					<FormEditor columnDefs={props.columnDefs} />
-				</div>
-			</Modal>}
-		</div>
-	}
-	return {
-		getSelectedRows,
-		resetSelectedRows,
-		makeToggleFn,
-		BulkEditAllBar,
-		ref: ref.current
-	};
-}
 export const EZDataGrid = ({
 	hiddenValues = {},
 	...props

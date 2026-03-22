@@ -50,13 +50,15 @@ export const Cell = (
 			onMouseOver={props.onMouseOver}
 			onMouseLeave={props.onMouseLeave}
 			onFocus={(e) => {
-				let found = false;
-				e.currentTarget.querySelectorAll('input, textarea, select').forEach((input) => {
-					if (found) return;
-					if ((input as HTMLInputElement).type == 'hidden') return;
-					found = true;
-					(input as HTMLInputElement).focus();
-				});
+				// let found = false;
+				// e.currentTarget.querySelectorAll('input, textarea, select').forEach((input) => {
+				// 	if (found) return;
+				// 	if ((input as HTMLInputElement).type == 'hidden') return;
+				// 	found = true;
+				// 	(input as HTMLInputElement).focus();
+				// 	console.log('focusing', input);
+				// });
+				// console.log('focus control found?', {found})
 			}}
 		>
 			{Before && <Before />}{props.children}{After && <After />}

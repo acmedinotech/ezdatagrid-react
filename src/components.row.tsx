@@ -75,9 +75,7 @@ export const Row = (
 					const btn = e.currentTarget.querySelector(
 						'button[data-ezdg-action="$cancel-edits"]'
 					);
-					if (btn) {
-						(btn as HTMLButtonElement).click();
-					}
+					(btn as HTMLButtonElement)?.click();
 				} else if (e.key == 'Enter') {
 					htmlFindEditAddButtons(e.currentTarget)?.forEach((e) =>
 						(e as HTMLButtonElement).click()
