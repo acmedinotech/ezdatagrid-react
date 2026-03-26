@@ -298,12 +298,12 @@ export const documentFocusOnLastAddNewRow = ({
 	documentFocusOnFirstControl(documentFindPriorityFocus(lastRow) ?? lastRow);
 };
 
-export const htmlFindSaveButtons = (parent?: Element | null) =>
+export const documentFindSaveButtons = (parent?: Element | null) =>
 	parent?.querySelectorAll(
 		'[data-ezdg-action="$update-row"], [data-ezdg-action="$create-row"]'
 	);
 
-export const htmlFindEditAddButtons = (parent?: Element | null) =>
+export const documentFindEditAddButtons = (parent?: Element | null) =>
 	parent?.querySelectorAll(
 		'[data-ezdg-action="$edit-row"], [data-ezdg-action="$table_add-row"]'
 	);

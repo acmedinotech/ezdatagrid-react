@@ -5,7 +5,7 @@ import {
 	RowToolbarView,
 } from './components.rowTools';
 import { CellEditor } from './components.cell';
-import { asHtmlElement, htmlFindEditAddButtons } from './helpers';
+import { asHtmlElement, documentFindEditAddButtons } from './helpers';
 import {
 	ROW_SIDEBAR_COLS,
 	RowContext,
@@ -66,7 +66,7 @@ export const Row = (
 				delete e.currentTarget.dataset['ezdgRowfocus'];
 			}}
 			onDoubleClick={(e) => {
-				htmlFindEditAddButtons(e.currentTarget)?.forEach((e) =>
+				documentFindEditAddButtons(e.currentTarget)?.forEach((e) =>
 					(e as HTMLButtonElement).click()
 				);
 			}}
@@ -77,7 +77,7 @@ export const Row = (
 					);
 					(btn as HTMLButtonElement)?.click();
 				} else if (e.key == 'Enter') {
-					htmlFindEditAddButtons(e.currentTarget)?.forEach((e) =>
+					documentFindEditAddButtons(e.currentTarget)?.forEach((e) =>
 						(e as HTMLButtonElement).click()
 					);
 				} else if (e.key == 'ArrowUp' && e.shiftKey) {

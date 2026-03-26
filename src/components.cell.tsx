@@ -5,8 +5,8 @@ import {
 } from './components.formControls';
 import {
 	documentFocusOnCellByXY,
-	htmlFindEditAddButtons,
-	htmlFindSaveButtons,
+	documentFindEditAddButtons,
+	documentFindSaveButtons,
 	optionalHtmlButton,
 } from './helpers';
 import {
@@ -132,7 +132,7 @@ export const CellEdit = ({
 				 * - *: triggers update/create
 				 * - Shift+: triggers edit of next row OR add new row
 				 */
-				htmlFindSaveButtons(row)?.forEach((btn, idx) => {
+				documentFindSaveButtons(row)?.forEach((btn, idx) => {
 					if (idx == 0) {
 						(btn as HTMLButtonElement).click();
 						delete row.dataset['ezdgRowfocus'];
@@ -141,7 +141,7 @@ export const CellEdit = ({
 
 				if (e.shiftKey) {
 					window.setTimeout(() => {
-						htmlFindEditAddButtons(
+						documentFindEditAddButtons(
 							row?.nextElementSibling
 						)?.forEach((e, idx) => {
 							idx == 0 && optionalHtmlButton(e)?.click();

@@ -13,25 +13,26 @@ export const Modal = ({ closeFn, children }: { closeFn: () => void } & React.Pro
         <div data-ezdg-backdrop onClick={(e) => {
             // console.log('click.backdrop');
             e.stopPropagation();
-            e.preventDefault();
+            // e.preventDefault();
         }} onDoubleClick={(e) => {
             // console.log('dblclick.backdrop');
             e.stopPropagation();
-            e.preventDefault();
+            // e.preventDefault();
         }}
         onKeyUp={(e) => {
           e.preventDefault();
-          e.stopPropagation();
+        //   e.stopPropagation();
         }}>
         </div>
         <div data-ezdg-modal onClick={(e) => {
             e.stopPropagation();
-            e.preventDefault();
         }} onFocus={() => {
             // console.log('focus.modal');
         }}>
             <div data-ezdg-toolbar="right"><button onClick={() => closeFn()}>close</button></div>
+            <div data-ezdg-modal-content>
             {children}
+            </div>
         </div>
     </div>
     );

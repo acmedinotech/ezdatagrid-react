@@ -5,11 +5,8 @@ import {
 	RowEditorProps,
 	StructRecordAny,
 } from './types';
-import styles from './styles.module.scss';
 import {
 	collectFormRowData,
-	documentFindPriorityFocus,
-	documentFocusOnFirstControl,
 	documentFocusOnLastAddNewRow,
 	EZDGMutateError,
 	normalizeAndValidateRowData,
@@ -86,7 +83,7 @@ export const RowExpandedView = ({
 export const RowToolbarView = (props: RowButtonProps & RowEditorProps) => {
 	const readOnly = props.readOnly ?? false;
 	return (
-		<div className={`${styles['buttonBar']}`}>
+		<div data-ezdg-toolbar="inline">
 			<span><input type="checkbox" name="$bulkedit_select-row" value={props.rowContext.getRowIndex()} onChange={(e) => props.toggleBulkFn?.(e.target.checked)} /></span>
 
 			<RowExpandButton {...props} />
@@ -182,7 +179,7 @@ export const RowToolbarAdd = ({
 	...props
 }: RowToolbarProps) => {
 	return (
-		<div className={`${styles['buttonBar']}`}>
+		<div data-ezdg-toolbar="inline">
 			<RowCreateButton {...props} rowContext={rowContext} />
 			<RowDebugButton {...props} rowContext={rowContext} />
 		</div>
@@ -283,7 +280,7 @@ export const RowToolbarEdit = ({
 }: RowButtonProps & RowEditorProps) => {
 	const tableCtx = useContext(EZDGTableContextProvider);
 	return (
-		<div className={`${styles['buttonBar']}`}>			
+		<div data-ezdg-toolbar="inline">			
 			<RowUpdateButton {...props} rowContext={rowContext} />
 			<RowCancelButton {...props} rowContext={rowContext} />
 			<RowDebugButton {...props} rowContext={rowContext} />

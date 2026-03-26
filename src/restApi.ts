@@ -19,7 +19,7 @@
  * - batch updates
  */
 
-import { DataStore, EZDGError, isStructError } from './types';
+import { BatchUpdateArgs, BatchUpdateProgressIncrement, DataStore, EZDGError, isStructError, StructRecordAny } from './types';
 
 export const parseResponseOrThrow = async (
 	response: Response
@@ -49,15 +49,32 @@ export const parseResponseOrThrow = async (
  * @todo basic response validation
  */
 export const getEZRestApiEntityStore = (entityRootUri: string): DataStore => {
+	let lastFetchedPage: StructRecordAny[] = [];
+
+	const updateRow = async (data: StructRecordAny) => {
+		return await parseResponseOrThrow(
+			await fetch(`${entityRootUri}/${data._id}`, {
+				method: 'PUT',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify(data),
+			})
+		);
+	};
+	
 	return {
+		getCurrentPage: () => lastFetchedPage,
 		fetchPage: async (params) => {
-			return await parseResponseOrThrow(
+			const response = await parseResponseOrThrow(
 				await fetch(
 					`${entityRootUri}?searchParamsJson=${JSON.stringify(
 						params ?? {}
 					)}`
 				)
 			);
+			lastFetchedPage = response.entities;
+			return response;
 		},
 
 		fetchRow: async (id) => {
@@ -78,17 +95,7 @@ export const getEZRestApiEntityStore = (entityRootUri: string): DataStore => {
 			);
 		},
 
-		updateRow: async (data) => {
-			return await parseResponseOrThrow(
-				await fetch(`${entityRootUri}/${data._id}`, {
-					method: 'PUT',
-					headers: {
-						'Content-Type': 'application/json',
-					},
-					body: JSON.stringify(data),
-				})
-			);
-		},
+		updateRow,
 
 		deleteRow: async (data) => {
 			const response = await fetch(`${entityRootUri}/${data.id}`, {
@@ -105,8 +112,43 @@ export const getEZRestApiEntityStore = (entityRootUri: string): DataStore => {
 			}
 			return data;
 		},
-	};
-};
+		batchUpdateRows: async ({ patch, selectedRows, progressCallback }) => {
+			// @todo allow callback for updates
+			let success = 0;
+			let errors: StructRecordAny = {};
+			const updatedRows: StructRecordAny[] = [];
+
+			const prog: BatchUpdateProgressIncrement = {
+				success: 0,
+				errors: 0,
+				total: 0,
+			}
+			prog.total = Object.keys(selectedRows).length;
+			progressCallback?.(prog);
+
+			const promises = Object.entries(selectedRows).filter(([id, value]) => value).map(row => new Promise(async (resolve, reject) => {
+				try {
+					const response = await updateRow({ _id: row[0], ...patch })
+					progressCallback?.({ ...prog, success: ++prog.success });
+					success++
+					updatedRows.push(response);
+					resolve(response);
+				} catch (error) {
+					errors[row[0]] = error;
+					progressCallback?.({ ...prog, errors: ++prog.errors });
+				}
+			}));
+
+			await Promise.all(promises);
+			console.log('batchUpdateRows', { patch, selectedRows, success, errors, updatedRows });
+			return {
+				success,
+				errors,
+				updatedRows,
+			};
+		}
+	}
+}
 
 export const getEZRestApiEntityStoreProvider = (rootUri: string) => {
 	const escache: Record<string, DataStore> = {};
