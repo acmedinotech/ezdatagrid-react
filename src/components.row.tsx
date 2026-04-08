@@ -5,7 +5,7 @@ import {
 	RowToolbarView,
 } from './components.rowTools';
 import { CellEditor } from './components.cell';
-import { asHtmlElement, documentFindEditAddButtons } from './helpers';
+import { asHtmlElement, documentFindEditAddButtons, getEditorStateFlags } from './helpers';
 import {
 	ROW_SIDEBAR_COLS,
 	RowContext,
@@ -16,7 +16,7 @@ import {
 let rowCounter = 0;
 // @todo extend props: columns, className, etc
 export const Row = (
-	props: {
+	{ tabIndex = 0, ...props }: {
 		columns?: number;
 		isHeader?: boolean;
 		rowIndex?: number | string;
@@ -24,6 +24,7 @@ export const Row = (
 		hide?: boolean;
 		rowFloats?: boolean;
 		className?: string;
+		tabIndex?: number;
 	} & React.PropsWithChildren
 ) => {
 	const [idState] = useState(() => {
@@ -49,7 +50,7 @@ export const Row = (
 	return (
 		<div
 			id={`row-${props.rowIndex}`}
-			tabIndex={0}
+			tabIndex={tabIndex}
 			className={props.className}
 			style={{
 				display: props.hide ? 'none' : undefined,
@@ -71,6 +72,13 @@ export const Row = (
 				);
 			}}
 			onKeyUp={(e) => {
+				/**
+				 * KBbehavior (in-view):
+				 * - Escape: cancel edits
+				 * - Enter: save edits
+				 * - ArrowUp: focus previous row
+				 * - ArrowDown: focus next row
+				 */
 				if (e.key == 'Escape') {
 					const btn = e.currentTarget.querySelector(
 						'button[data-ezdg-action="$cancel-edits"]'
@@ -159,6 +167,7 @@ export const useRowState = (props: Pick<RowEditorProps, 'status' | 'rowData'>) =
 export const RowEditor = (props: RowEditorProps) => {
 	const { columns } = props;
 	const { rowState, myRowIndex, context } = useRowState(props);
+	const { isAdd, isView, isEdit } = getEditorStateFlags({ readOnly: props.readOnly, flash: rowState.data['__flash'], status: rowState.status });
 
 	const RowSpanAllCols = (
 		props: { isError?: boolean } & React.PropsWithChildren
@@ -198,12 +207,6 @@ export const RowEditor = (props: RowEditorProps) => {
 		</>
 	);
 
-	const readOnly = props.readOnly ?? false;
-	const isAdd = !readOnly && rowState.data.__flash == 'add';
-	const isView = readOnly ||(!isAdd && rowState.status == 'view');
-	const isEdit = !readOnly && rowState.status == 'edit';
-	// console.log({readOnly, flash: rowState.data.__flash, status: rowState.status, isAdd, isView, isEdit})
-
 	return (
 		<>
 			<Row
@@ -227,7 +230,7 @@ export const RowEditor = (props: RowEditorProps) => {
 						colDef={props.colsMap[col.id]}
 						rowData={rowState.data}
 						id={col.id}
-						status={isAdd || isEdit ? 'edit' : 'view'}
+						status={isAdd ? 'add' : ( isEdit ? 'edit' : 'view')}
 						validationError={rowState.errorMap?.[col.id]}
 					/>
 				))}

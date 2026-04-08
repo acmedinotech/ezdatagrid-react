@@ -19,8 +19,8 @@ A lightweight, fast, and flexible dynamic datagrid display & editor that works o
   - [x] extract remaining buttons to top level
   - [ ] create SaveDataStoreButton that goes from `default -> 🟡 -> [🟢 | 🔴] -> default`
 - [ ] 🔎 search/pagination
-  - [ ] 🐞 `isArray` being ignored in control render
-  - [ ] filtering
+  - [x] 🐞 `isArray` being ignored in control render
+  - [x] filtering
   - [ ] sorting
 - [ ] 👩‍💻 UI polish
   - [ ] create 2-4 new themes

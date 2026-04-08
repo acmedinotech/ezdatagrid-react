@@ -80,12 +80,24 @@ export const RowExpandedView = ({
 	return null;
 };
 
+export const RowToggleEditButton = (props: RowButtonProps) => {
+	return (
+		<button
+			data-ezdg-action="$edit-row"
+			title="$edit-row"
+			onClick={() => props.rowContext.setStatus('edit')}
+		>
+			✏️
+		</button>
+	);
+}
+
 export const RowToolbarView = (props: RowButtonProps & RowEditorProps) => {
 	const readOnly = props.readOnly ?? false;
 	return (
 		<div data-ezdg-toolbar="inline">
 			<span><input type="checkbox" name="$bulkedit_select-row" value={props.rowContext.getRowIndex()} onChange={(e) => props.toggleBulkFn?.(e.target.checked)} /></span>
-
+			<RowToggleEditButton {...props} />
 			<RowExpandButton {...props} />
 			<RowDebugButton {...props} />
 		</div>

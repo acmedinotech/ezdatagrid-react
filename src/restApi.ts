@@ -62,7 +62,7 @@ export const getEZRestApiEntityStore = (entityRootUri: string): DataStore => {
 			})
 		);
 	};
-	
+
 	return {
 		getCurrentPage: () => lastFetchedPage,
 		fetchPage: async (params) => {
@@ -84,7 +84,11 @@ export const getEZRestApiEntityStore = (entityRootUri: string): DataStore => {
 		},
 
 		createRow: async (data) => {
-			return await parseResponseOrThrow(
+			if (data.id?.startsWith('*')) {
+				delete data.id;
+			}
+
+			const response = await parseResponseOrThrow(
 				await fetch(entityRootUri, {
 					method: 'POST',
 					headers: {
@@ -93,6 +97,8 @@ export const getEZRestApiEntityStore = (entityRootUri: string): DataStore => {
 					body: JSON.stringify(data),
 				})
 			);
+
+			return response;
 		},
 
 		updateRow,
@@ -126,17 +132,19 @@ export const getEZRestApiEntityStore = (entityRootUri: string): DataStore => {
 			prog.total = Object.keys(selectedRows).length;
 			progressCallback?.(prog);
 
-			const promises = Object.entries(selectedRows).filter(([id, value]) => value).map(row => new Promise(async (resolve, reject) => {
-				try {
-					const response = await updateRow({ _id: row[0], ...patch })
-					progressCallback?.({ ...prog, success: ++prog.success });
-					success++
-					updatedRows.push(response);
-					resolve(response);
-				} catch (error) {
-					errors[row[0]] = error;
-					progressCallback?.({ ...prog, errors: ++prog.errors });
-				}
+			const promises = Object.entries(selectedRows).filter(([id, value]) => value).map((row, idx) => new Promise(async (resolve, reject) => {
+				// window.setTimeout(async() => {
+					try {
+						const response = await updateRow({ _id: row[0], ...patch })
+						progressCallback?.({ ...prog, success: ++prog.success });
+						success++
+						updatedRows.push(response);
+						resolve(response);
+					} catch (error) {
+						errors[row[0]] = error;
+						progressCallback?.({ ...prog, errors: ++prog.errors });
+					}
+				// }, 1000 * (idx+1));
 			}));
 
 			await Promise.all(promises);

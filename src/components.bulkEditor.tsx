@@ -1,5 +1,5 @@
-import { useContext, useEffect, useRef, useState } from "react";
-import { ColumnDef, EZDataGridProps } from "./types";
+import { Dispatch, SetStateAction, useContext, useEffect, useRef, useState } from "react";
+import { BatchUpdateProgressIncrement, ColumnDef, EZDataGridProps, EZDGTableContext } from "./types";
 import { CellEditor } from "./components.cell";
 import { useRowState } from "./components.row";
 import { Modal } from "./components.utility";
@@ -21,7 +21,7 @@ export const FormEditor = ({ columnDefs, labelFn, enableToggle, toggleMode = 'al
     const ControlRow = (colDef: ColumnDef) => {
         return <div data-ezdg-row={totalCols} key={colDef.id}>
             {enableToggle && <div data-ezdg-cell data-ezdg-toolbar="inline">
-                <span>{toggleMode}</span> <input type="checkbox" name="$formeditor_toggle" value={`${toggleMode}:${colDef.id}`} /> 
+                <span>{toggleMode}</span> <input type="checkbox" name="$formeditor_toggle" value={`${toggleMode}:${colDef.id}`} />
             </div>}
             <div data-ezdg-cell="2">
                 <label htmlFor={`${colDef.id}`}>
@@ -53,14 +53,18 @@ export type BulkEditorButtonProps = {
     context: BulkEditorContext;
 }
 
-const ButtonBulkSave = ({context}: BulkEditorButtonProps) => {
+const ButtonBulkSave = ({ context, incrementBatchSave }: { incrementBatchSave?: (increment: BatchUpdateProgressIncrement) => void } & BulkEditorButtonProps) => {
     const tableCtx = useContext(EZDGTableContextProvider);
-    return <button data-ezdg-action="$bulkedit_save" onClick={(e) => {
+    const [state, setState] = useState({
+        busy: false,
+        label: undefined as string | undefined,
+    })
+    return <button data-ezdg-action="$bulkedit_save" disabled={state.busy} onClick={(e) => {
         const form = e.currentTarget.closest('[data-ezdg-modal-content]')?.querySelector('[data-ezdg-formeditor]');
-        console.log(form)
         const formData = collectFormRowData(asHtmlElement(form as HTMLElement));
         const toggles = formData['$formeditor_toggle'] ?? [];
-        const data: Record<string,any> = {};
+        const data: Record<string, any> = {};
+
         let count = 0;
         toggles.forEach((toggle: string) => {
             const [mode, id] = toggle.split(':');
@@ -73,26 +77,43 @@ const ButtonBulkSave = ({context}: BulkEditorButtonProps) => {
         }
 
         const selectedRows = context.getSelectedRows();
-        console.log('batch update', {data, selectedRows});
         tableCtx.dataStore.batchUpdateRows?.({
             patch: data,
             selectedRows,
             rows: tableCtx.dataStore.getCurrentPage(),
-            progressCallback: (prog) => {
-                console.log('#'.repeat(prog.success) + 'X'.repeat(prog.errors) + '.'.repeat(prog.total - prog.success - prog.errors ), '/', prog.total);
+            progressCallback: ({ success, errors, total }) => {
+                setState({ busy: true, label: `saving ${success} of ${total} rows` })
             }
+        }).then(batch => {
+            const errors = Object.values(batch.errors).length;
+            if (errors > 0) {
+                // alert(`${errors} occurred. see console for details.`);
+                console.error('batchUpdateRows() error', batch);
+            }
+            setState({ busy: false, label: `✅ ${batch.success} updated ${errors ? ` / ❌ ${batch.errors} failed` : ''}` });
+            incrementBatchSave?.({success: batch.success, errors, total: batch.success + errors});
         });
-    }}>save {context.countSelected()}</button>
+    }}>{state.label ?? `save ${context.countSelected()} rows`}</button>
 }
 
-const ButtonBulkDelete = ({context}: BulkEditorButtonProps) => {
+const ButtonBulkDelete = ({ context }: BulkEditorButtonProps) => {
     return <button data-ezdg-action="$bulkedit_delete" data-ezdg-button="link,red" disabled={true}>delete {context.countSelected()}</button>
 }
 
-const makeBulkEditAllBar = ({context, ...props}: BulkEditorButtonProps & Pick<EZDataGridProps, 'columnDefs'>) => {
+const makeBulkEditAllBar = ({ context, ...props }: BulkEditorButtonProps & Pick<EZDataGridProps, 'columnDefs'>) => {
     return function ButtonBulkEditAllBar() {
+        const tableCtx = useContext(EZDGTableContextProvider);
         const [isOpen, setIsOpen] = useState(false);
         const [isDisabled, setIsDisabled] = useState(true);
+        const [batchIncrement, setBatchIncrement] = useState({ success: 0, errors: 0, total: 0 } as BatchUpdateProgressIncrement);
+
+        const updateBatchSave = (increment: BatchUpdateProgressIncrement) => {
+            setBatchIncrement({
+                success: batchIncrement.success + increment.success,
+                errors: batchIncrement.errors + increment.errors,
+                total: batchIncrement.total + increment.total,
+            });
+        }
 
         useEffect(() => {
             return context.subscribeToBulkEditor((rowId, value) => {
@@ -100,7 +121,7 @@ const makeBulkEditAllBar = ({context, ...props}: BulkEditorButtonProps & Pick<EZ
                 setIsDisabled(disabled);
             });
         }, [context]);
-        
+
         return <div data-ezdg-toolbar="inline,border" data-ezdg-bulkeditor="true">
             <input type="checkbox" name="$bulkedit_select-all" onChange={(e) => {
                 const isChecked = e.target.checked;
@@ -114,12 +135,18 @@ const makeBulkEditAllBar = ({context, ...props}: BulkEditorButtonProps & Pick<EZ
             <button onClick={() => setIsOpen(true)} disabled={isDisabled}>
                 <span data-ezdg-toolbar>bulk</span>
             </button>
-            {isOpen && <Modal closeFn={() => setIsOpen(false)}>
+            {isOpen && <Modal closeFn={() => {
+                if (batchIncrement.success > 0) {
+                    context.resetSelectedRows();
+                    tableCtx.refetchPage();
+                }
+                setIsOpen(false);
+            }}>
                 <div style={{ width: '500px', height: '500px', backgroundColor: 'white' }}>
                     <h1>Bulk Edit</h1>
                     <FormEditor columnDefs={props.columnDefs} enableToggle={true} toggleMode='update' />
                     <div data-ezdg-toolbar="inline,border">
-                        <ButtonBulkSave  context={context} />
+                        <ButtonBulkSave context={context} incrementBatchSave={updateBatchSave} />
                         <ButtonBulkDelete context={context} />
                     </div>
                 </div>
@@ -170,7 +197,7 @@ export const useBulkEditor = (props: EZDataGridProps) => {
 
     return {
         ...context,
-        BulkEditAllBar: makeBulkEditAllBar( {...props, context}),
+        BulkEditAllBar: makeBulkEditAllBar({ ...props, context }),
         ref
     };
 }

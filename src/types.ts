@@ -255,6 +255,8 @@ export type CellBeforeAfterProps = {
 };
 
 export type CellEditorProps = {
+	className?: string;
+	decorators?: string;
 	colDef: ColumnDef;
 	id: string | number;
 	rowData: StructRecordAny;

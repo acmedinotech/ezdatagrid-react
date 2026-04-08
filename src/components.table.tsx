@@ -7,6 +7,7 @@ import {
 	asHtmlElement,
 	collectFormRowData,
 	LogicalOperatorOptions,
+	normalizeKeyUp,
 	rollMapIntoFlatKeys,
 	SortOptions,
 	unrollFlatMapKeys,
@@ -409,7 +410,6 @@ export const EZDataGrid = ({
 			});
 		},
 		setUiOverlays: (p) => {
-			console.log('setUiOverlays -> ', p);
 			_setState({
 				uiOverlays: {
 					...tableState.uiOverlays,
@@ -439,7 +439,16 @@ export const EZDataGrid = ({
 
 	return (
 		<EZDGTableContextProvider.Provider value={context}>
-			<div className={styles['ezdatagrid']}>
+			<div className={styles['ezdatagrid']} onKeyUp={(e) => {
+				if (e.ctrlKey && e.altKey && e.code === 'KeyA') {
+					e.preventDefault();
+					e.stopPropagation();
+					e.currentTarget.querySelector('button[data-ezdg-action="$table_add-row"]')?.click();
+				}
+				// @todo copy
+				// @todo paste
+				// @todo bulk-edit
+			}}>
 				<div data-ezdg-table>
 					<TableHeaderToolbarRow
 						colsMap={colsMap}
