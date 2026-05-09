@@ -10,8 +10,8 @@ import {
 	optionalHtmlButton,
 	documentFocusOnFirstControl,
 	normalizeKeyUp,
-	CellEventUtils,
 } from './helpers';
+import * as kbEvents from './utils.kbEvents';
 import {
 	CellBeforeAfterProps,
 	CellEditorProps,
@@ -78,6 +78,11 @@ export const CellEdit = ({
 	const colId = props.id ?? 'generic';
 	const status = props.status ?? props.rowContext.getRowState().status;
 
+	const refocusCell = (parent: HTMLElement | null) => {
+		// console.log('refocusCell ###', `[data-ezdg-colindex="${colId}"]`, parent, parent?.querySelector(`[data-ezdg-colindex="${colId}"]`)?.focus);
+		parent?.querySelector(`[data-ezdg-colindex="${colId}"]`)?.focus();
+	}
+
 	const handleViewOpenEdit = (e: React.KeyboardEvent | React.MouseEvent) => {
 		// console.log('handleViewOpenEdit', { status }, e);
 		if (status != 'view') return false;
@@ -95,6 +100,73 @@ export const CellEdit = ({
 		return true;
 	};
 
+	const getKeyUpArgs = (row: HTMLDivElement): kbEvents.HandleCellKeyUpArgs => {
+		return {
+			handleViewOpenEdit,
+			handleQuickEnter: () => {
+				/**
+				 * KBbehavior (in-edit):
+				 * - Ctrl+Enter: save edits
+				 * - Ctrl+Shift+Enter: triggers edit of next row OR add new row
+				 */
+				documentFindSaveButtons(row)?.forEach((btn, idx) => {
+					// console.log('save button', btn, idx);
+					if (idx == 0) {
+						(btn as HTMLButtonElement).click();
+						delete row.dataset['ezdgRowfocus'];
+					}
+				});
+			},
+			handleQuickShiftEnter: () => {
+				window.setTimeout(() => {
+					documentFindEditAddButtons(
+						row?.nextElementSibling
+					)?.forEach((e, idx) => {
+						if (idx == 0) {
+							optionalHtmlButton(e)?.click();
+							// step 2: after brief delay, attempt to focus on corresponding cell+first control
+							window.setTimeout(() => {
+								documentFocusOnFirstControl(row?.nextElementSibling?.querySelector(`[data-ezdg-colindex="${colId}"]`));
+							}, 33);
+						}
+					});
+				}, 33);
+			},
+			handleEnter: () => {
+				window.setTimeout(() => {
+					refocusCell(row);
+				}, 66);
+			},
+			handleEscape: () => {
+				const btn = row.querySelector(
+					'button[data-ezdg-action="$cancel-edits"]'
+				);
+				(btn as HTMLButtonElement)?.click();
+				window.setTimeout(() => {
+					refocusCell(row);
+				}, 66);
+			},
+			handleArrow: (arrow) => {
+				let focusTarget = null as HTMLElement | ChildNode | null;
+				if (arrow.dir == 'left' || arrow.dir == 'right') {
+					if (arrow.dir == 'left') {
+						focusTarget = e.currentTarget.previousSibling;
+					} else {
+						focusTarget = e.currentTarget.nextSibling;
+					}
+					focusTarget?.focus();
+				} else {
+					if (arrow.dir == 'up') {
+						focusTarget = row.previousSibling;
+					} else {
+						focusTarget = row.nextSibling;
+					}
+					refocusCell(focusTarget as HTMLElement);
+				}
+			}
+		}
+	};
+
 	return (
 		<Cell
 			tabIndex={status == 'edit' ? undefined : 0}
@@ -109,83 +181,8 @@ export const CellEdit = ({
 				}
 			}}
 			onKeyDown={(e) => {
-				const { isEnter, isQuickEnter, isQuickShiftEnter, isEscape, isArrow: arrow } = CellEventUtils.parseKeyUp(e);
 				const row = e.currentTarget.closest('[data-ezdg-row]') as HTMLDivElement;
-
-				const refocusCell = (parent: HTMLElement | null) => {
-					// console.log('refocusCell ###', `[data-ezdg-colindex="${colId}"]`, parent, parent?.querySelector(`[data-ezdg-colindex="${colId}"]`)?.focus);
-					parent?.querySelector(`[data-ezdg-colindex="${colId}"]`)?.focus();
-				}
-
-				if (isEscape) {
-					e.preventDefault();
-					e.stopPropagation();
-					const btn = row.querySelector(
-						'button[data-ezdg-action="$cancel-edits"]'
-					);
-					(btn as HTMLButtonElement)?.click();
-					window.setTimeout(() => {
-						refocusCell(row);
-					}, 66);
-					return;
-				} else if (arrow) {
-					let focusTarget = null as HTMLElement | ChildNode | null;
-					if (arrow.dir == 'left' || arrow.dir == 'right') {
-						if (arrow.dir == 'left') {
-							focusTarget = e.currentTarget.previousSibling;
-						} else {
-							focusTarget = e.currentTarget.nextSibling;
-						}
-						focusTarget?.focus();
-					} else {
-						if (arrow.dir == 'up') {
-							focusTarget = row.previousSibling;
-						} else {
-							focusTarget = row.nextSibling;
-						}
-						refocusCell(focusTarget as HTMLElement);
-					}
-					return;
-				} else if (isEnter) {
-					if (handleViewOpenEdit(e)) {
-						e.preventDefault();
-						e.stopPropagation();
-					} else if (isQuickEnter) {
-						/**
-						 * KBbehavior (in-edit):
-						 * - Ctrl+Enter: save edits
-						 * - Ctrl+Shift+Enter: triggers edit of next row OR add new row
-						 */
-						documentFindSaveButtons(row)?.forEach((btn, idx) => {
-							// console.log('save button', btn, idx);
-							if (idx == 0) {
-								(btn as HTMLButtonElement).click();
-								delete row.dataset['ezdgRowfocus'];
-							}
-						});
-					}
-
-					if (isQuickShiftEnter) {
-						// step 1: after brief delay, attempt to edit next row
-						window.setTimeout(() => {
-							documentFindEditAddButtons(
-								row?.nextElementSibling
-							)?.forEach((e, idx) => {
-								if (idx == 0) {
-									optionalHtmlButton(e)?.click();
-									// step 2: after brief delay, attempt to focus on corresponding cell+first control
-									window.setTimeout(() => {
-										documentFocusOnFirstControl(row?.nextElementSibling?.querySelector(`[data-ezdg-colindex="${colId}"]`));
-									}, 33);
-								}
-							});
-						}, 33);
-					} else {
-						window.setTimeout(() => {
-							refocusCell(row);
-						}, 66);
-					}
-				}
+				kbEvents.handleCellKeyUp(e, getKeyUpArgs(row))
 			}}
 		>
 			{Before && <Before />}

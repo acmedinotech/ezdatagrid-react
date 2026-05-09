@@ -98,7 +98,7 @@ export const getEditorStateFlags = (props: {
 	};
 }
 
-export const CellEventUtils = {
+export const kbEvents = {
 	parseKeyUp: (e: React.KeyboardEvent) => {
 		let isEnter = false, isQuickEnter = false, isQuickShiftEnter = false, isEscape = false, isArrow = undefined;
 		if (e.key == 'Enter') {
