@@ -7,13 +7,15 @@
   --row-even-bgcolor: #efefef;
   --row-even-color: black;
 
-  --cell-outline: 2px solid red;
+  --cell-outline: 1px solid red;
   --row-outline: 1px solid lightsalmon;
   --table-outline: 1px solid rgb(2, 3, 2);
   --transition-outline: 0.1s;
 }
 
 .ezdatagrid {
+  color: black;
+
   [data-ezdg-theme="blue-01"] {
     --row-header-bgcolor: #3d4890;
     --row-header-color: rgb(190, 181, 181);
@@ -26,20 +28,26 @@
     --row-outline: 1px solid black;
     --table-outline: 1px solid green;
   }
+
   // END: THEME VARIABLES
 
   // @todo theme vars?
-  font-family: Menlo, Monaco, 'Courier New', monospace;
+  font-family: Menlo,
+  Monaco,
+  'Courier New',
+  monospace;
   font-size: .9em;
 
   // ROW FLASH
   [data-ezdg-flash="add"] {
     outline: 1px solid yellow;
+
     input,
     select,
     textarea {
       transition: 0.6s;
     }
+
     &:hover {
       input,
       select,
@@ -60,11 +68,105 @@
     --row-odd-bgcolor: lightyellow;
     --row-even-bgcolor: lightpink;
   }
+
   // END: ROW FLASH
 
   button {
+    background-color: lightgoldenrodyellow;
     font-size: .9em;
-    padding: 1px 2px;
+    padding: 1px 4px;
+    border: 1px solid black;
+    border-radius: 4px;
+    box-shadow: inset 0 0 2px 0 #999;
+
+    &[data-ezdg-button*="link"] {
+      background-color: transparent;
+      border: 0;
+      outline: 0;
+      box-shadow: inset 0;
+    }
+
+    &:hover {
+      background-color: gold;
+    }
+
+    &:active {
+      background-color: goldenrod;
+      color: white;
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      &:hover, &:active {
+        background-color: #999;
+        color: #ccc;
+        cursor: not-allowed;
+      }
+    }
+  }
+
+  button:global(.green) {
+    background-color: lightgreen;
+    color: black;
+    &:hover {
+      background-color: green;
+      color: #efefef;
+    }
+    &:active {
+      background-color: darkgreen;
+      color: white;
+    }
+  }
+
+  button:global(.blue) {
+    background-color: lightblue;
+    color: black;
+    &:hover {
+      background-color: blue;
+      color: #efefef;
+    }
+    &:active {
+      background-color: darkblue;
+      color: white;
+    }
+  }
+
+  button:global(.orange) {
+    background-color: lightsalmon;
+    color: black;
+    &:hover {
+      background-color: orange;
+      color: #efefef;
+    }
+    &:active {
+      background-color: darkorange;
+      color: white;
+    }
+  }
+
+  button:global(.red) {
+    background-color: lightcoral;
+    color: black;
+    &:hover {
+      background-color: red;
+      color: #efefef;
+    }
+    &:active {
+      background-color: darkred;
+      color: white;
+    }
+  }
+
+  :global(.id-label) {
+    color: #333;
+    flex-basis: 10%;
+    max-width: 10%;
+    overflow: scroll;
+    text-overflow: ellipsis;
+    font-family: monospace;
+    font-size: 0.8em;
+    text-align: right;
   }
 
   // UTILITIES
@@ -81,7 +183,7 @@
 
   [data-ezdg-flex] {
     display: flex;
-    // justify-content: space-between;
+    align-items: center;
   }
 
   [data-ezdg-flex*="wrap"] {
@@ -95,6 +197,30 @@
   [data-ezdg-flex*="dir-col"] {
     flex-direction: column;
   }
+
+  [data-ezdg-toolbar] {
+    display: flex;
+    gap: 2px 4px
+  }
+
+  [data-ezdg-toolbar*="right"] {
+    justify-content: flex-end;
+  }
+
+  [data-ezdg-toolbar*="left"] {
+    justify-content: flex-start;
+  }
+
+  [data-ezdg-toolbar*="center"] {
+    justify-content: center;
+  }
+
+  [data-ezdg-toolbar*="border"] {
+    border: 1px solid black;
+    border-radius: 4px;
+    padding: 2px;
+  }
+
   // END: UTILITIES
 
   // TABLE
@@ -112,6 +238,11 @@
     // }
   }
 
+  .buttonBar {
+    display: flex;
+    gap: 2px
+  }
+
   // ROW: 2 to 32-column variants defined in next section
   // @todo shift grid-template-columns to cssvar
   [data-ezdg-row] {
@@ -122,8 +253,15 @@
     padding: 2px 0;
     transition: .75s;
 
+    max-height: 5em;
+    overflow: scroll;
+
     &:hover {
       outline: var(--row-outline);
+    }
+
+    &:focus {
+      outline: 3px solid yellow;
     }
 
     &[data-ezdg-rowfocus] {
@@ -152,6 +290,7 @@
       color: var(--row-header-color);
       background-color: var(--row-header-bgcolor);
       border-bottom: 1px solid lightcoral;
+
       [data-ezdg-cell] {
         font-weight: bold;
       }
@@ -168,11 +307,23 @@
   [data-ezdg-cell] {
     padding: 2px 4px;
     min-width: 0.5fr;
-    overflow-x: scroll;
+    overflow: scroll;
     transition: var(--transition-outline);
 
     &:hover {
       outline: var(--cell-outline);
+    }
+
+    &:focus {
+      outline: 3px solid green;
+    }
+
+    input,
+    select,
+    textarea {
+      &:focus {
+        outline: 2px solid red;
+      }
     }
 
     input {
@@ -194,15 +345,17 @@
       max-height: 15em;
     }
 
-    textarea {
+    textarea,
+    input[type="text"] {
       width: 98%;
       min-height: 1em;
       max-height: 20em;
       field-sizing: content;
+      background-color: white;
     }
   }
 
-    // @todo test efficacy
+  // @todo test efficacy
   [data-ezdg-cell="spacer"] {
     flex-basis: 1;
     // outline: 1px solid brown;
@@ -224,5 +377,29 @@
   [data-ezdg-error] {
     outline: 1px solid lightcoral;
     color: red;
+  }
+}
+
+:global([data-ezdg-backdrop]) {
+  background: rgba(0, 0, 0, 0.3);
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 999;
+}
+
+:global([data-ezdg-modal]) {
+  background-color: white;
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  padding: 8px;
+  z-index: 1000;
+  &:hover {
+    outline: 4px solid lightgreen;
+    outline-style:ridge;
   }
 }

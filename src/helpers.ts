@@ -81,6 +81,57 @@ export const normalizeEnumToMap = (
 	return norm;
 };
 
+export const getEditorStateFlags = (props: {
+	readOnly?: boolean;
+	status?: string;
+	flash?: string;
+}) => {
+	const { readOnly, status, flash } = props;
+	const isAdd = !readOnly && flash == 'add';
+	const isView = readOnly || (!isAdd && status == 'view');
+	const isEdit = !readOnly && status == 'edit';
+	return {
+		readOnly,
+		isAdd,
+		isView,
+		isEdit,
+	};
+}
+
+export const kbEvents = {
+	parseKeyUp: (e: React.KeyboardEvent) => {
+		let isEnter = false, isQuickEnter = false, isQuickShiftEnter = false, isEscape = false, isArrow = undefined;
+		if (e.key == 'Enter') {
+			isEnter = true;
+			if (e.ctrlKey && e.key == 'Enter') {
+			isQuickEnter = true;
+			if (e.shiftKey && e.key == 'Enter') {
+				isQuickShiftEnter = true;
+			}
+		}
+		} else if (e.key.startsWith('Arrow')) {
+			isArrow = {dir: e.key.substring(5).toLowerCase()};
+		} else if (e.key == 'Escape') {
+			isEscape = true;
+		}
+		return {
+			isEnter,
+			isQuickEnter,
+			isQuickShiftEnter,
+			isEscape,
+			isArrow,
+		}
+	}
+}
+
+export const stringFormatters = {
+	padLeft0: (val: number, width: number) => val.toString().padStart(width, '0'),
+}
+
+/**
+ * SECTION: DOM helpers
+ */
+
 /**
  * Given an input, return the appropriate value based on `data-fdt-type` and `ele.value`.
  * Type override exists to allow parent handling of child (e.g. select -> option).
@@ -298,14 +349,14 @@ export const documentFocusOnLastAddNewRow = ({
 	documentFocusOnFirstControl(documentFindPriorityFocus(lastRow) ?? lastRow);
 };
 
-export const htmlFindSaveButtons = (parent?: Element | null) =>
+export const documentFindSaveButtons = (parent?: Element | null) =>
 	parent?.querySelectorAll(
 		'[data-ezdg-action="$update-row"], [data-ezdg-action="$create-row"]'
 	);
 
-export const htmlFindEditAddButtons = (parent?: Element | null) =>
+export const documentFindEditAddButtons = (parent?: Element | null) =>
 	parent?.querySelectorAll(
-		'[data-ezdg-action="$edit-row"], [data-ezdg-action="$add-row"]'
+		'[data-ezdg-action="$edit-row"], [data-ezdg-action="$table_add-row"]'
 	);
 
 /**
@@ -316,6 +367,22 @@ export const asHtmlElement = (ele?: Element | null) => ele as HTMLElement;
 
 export const optionalHtmlButton = (ele?: Element | null) =>
 	ele ? (ele as HTMLButtonElement) : null;
+
+export const normalizeKeyUp = (e: React.KeyboardEvent) => {
+	const isEnter = e.key == 'Enter'
+	const isQuickEnter = e.ctrlKey && isEnter;
+	const isQuickShiftEnter = e.shiftKey && isEnter;
+	const arrow = e.key.startsWith('Arrow') ? {
+		key: e.key,
+		dir: e.key.substring(5).toLowerCase(),
+	} : undefined
+	return {
+		isEnter,
+		isQuickEnter,
+		isQuickShiftEnter,
+		arrow,
+	};
+}
 
 export const LogicalOperatorOptions = {
 	lt: '<',
@@ -328,7 +395,7 @@ export const LogicalOperatorOptions = {
 };
 
 export const SortOptions = {
-	'': '----',
+	'': '<sort>',
 	asc: 'asc',
 	dsc: 'desc',
 };

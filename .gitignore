@@ -3,3 +3,7 @@ dist/
 *.tsbuildinfo
 .DS_Store
 *.local
+playground/
+tmp/
+yarn.lock
+coverage/

@@ -184,12 +184,39 @@ export class EZDGError extends Error {
 	}
 }
 
+export type BatchUpdateResults<Entity = StructRecordAny> = {
+	success: number;
+	errors: Record<string,any>;
+	updatedRows?: Entity[];
+}
+
+export type BatchUpdateProgressIncrement = {
+	success: number;
+	errors: number;
+	total: number;
+};
+
+export type BatchUpdateArgs<Entity = StructRecordAny> = {
+	patch: Partial<Entity>;
+	selectedRows: Record<string,boolean>;
+	rows: Entity[];
+	progressCallback?: (args: BatchUpdateProgressIncrement) => void;
+}
+
 export type DataStore<Entity = StructRecordAny> = {
+	getCurrentPage: () => Entity[];
 	fetchPage: (pagination?: SearchParams) => Promise<StructFetchPage>;
 	fetchRow?: (id: any) => Promise<Entity>;
 	updateRow?: (rowData: Entity) => Promise<Entity>;
 	createRow?: (rowData: Entity) => Promise<Entity>;
 	deleteRow?: (rowData: Entity) => Promise<Entity>;
+	/**
+	 * Gives the patch, ids, and original rows so that the implementation can
+	 * decide how to batch-update.
+	 * @param args 
+	 * @returns 
+	 */
+	batchUpdateRows?: (args: BatchUpdateArgs<Entity>) => Promise<BatchUpdateResults<Entity>>;
 };
 
 export type StructRowState = {
@@ -228,6 +255,8 @@ export type CellBeforeAfterProps = {
 };
 
 export type CellEditorProps = {
+	className?: string;
+	decorators?: string;
 	colDef: ColumnDef;
 	id: string | number;
 	rowData: StructRecordAny;
@@ -241,6 +270,7 @@ export type RowEditorProps = {
 	colsMap: Record<string, ColumnDef>;
 	rowData: StructRecordAny;
 	status?: string;
+	toggleBulkFn?: (value: boolean) => void;
 } & EZDataGridProps<StructRecordAny>;
 
 export enum LoadState {
@@ -313,4 +343,4 @@ export type EZDataGridProps<Entity = StructRecordAny> = {
 	ExpandRowComponent?: (props: CellViewProxyProps) => React.ReactNode;
 };
 
-export const ROW_SIDEBAR_COLS = 1;
+export const ROW_SIDEBAR_COLS = 2;

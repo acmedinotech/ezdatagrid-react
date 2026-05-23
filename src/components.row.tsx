@@ -5,7 +5,7 @@ import {
 	RowToolbarView,
 } from './components.rowTools';
 import { CellEditor } from './components.cell';
-import { asHtmlElement, htmlFindEditAddButtons } from './helpers';
+import { asHtmlElement, documentFindEditAddButtons, getEditorStateFlags } from './helpers';
 import {
 	ROW_SIDEBAR_COLS,
 	RowContext,
@@ -16,7 +16,7 @@ import {
 let rowCounter = 0;
 // @todo extend props: columns, className, etc
 export const Row = (
-	props: {
+	{ tabIndex = 0, ...props }: {
 		columns?: number;
 		isHeader?: boolean;
 		rowIndex?: number | string;
@@ -24,6 +24,7 @@ export const Row = (
 		hide?: boolean;
 		rowFloats?: boolean;
 		className?: string;
+		tabIndex?: number;
 	} & React.PropsWithChildren
 ) => {
 	const [idState] = useState(() => {
@@ -48,8 +49,8 @@ export const Row = (
 
 	return (
 		<div
-			id={volatileId}
-			tabIndex={0}
+			id={`row-${props.rowIndex}`}
+			tabIndex={tabIndex}
 			className={props.className}
 			style={{
 				display: props.hide ? 'none' : undefined,
@@ -66,20 +67,25 @@ export const Row = (
 				delete e.currentTarget.dataset['ezdgRowfocus'];
 			}}
 			onDoubleClick={(e) => {
-				htmlFindEditAddButtons(e.currentTarget)?.forEach((e) =>
+				documentFindEditAddButtons(e.currentTarget)?.forEach((e) =>
 					(e as HTMLButtonElement).click()
 				);
 			}}
 			onKeyUp={(e) => {
+				/**
+				 * KBbehavior (in-view):
+				 * - Escape: cancel edits
+				 * - Enter: save edits
+				 * - ArrowUp: focus previous row
+				 * - ArrowDown: focus next row
+				 */
 				if (e.key == 'Escape') {
 					const btn = e.currentTarget.querySelector(
 						'button[data-ezdg-action="$cancel-edits"]'
 					);
-					if (btn) {
-						(btn as HTMLButtonElement).click();
-					}
+					(btn as HTMLButtonElement)?.click();
 				} else if (e.key == 'Enter') {
-					htmlFindEditAddButtons(e.currentTarget)?.forEach((e) =>
+					documentFindEditAddButtons(e.currentTarget)?.forEach((e) =>
 						(e as HTMLButtonElement).click()
 					);
 				} else if (e.key == 'ArrowUp' && e.shiftKey) {
@@ -98,8 +104,7 @@ export const Row = (
 
 let _rowIndexCounter = 0;
 
-export const RowEditor = (props: RowEditorProps) => {
-	const { columns } = props;
+export const useRowState = (props: Pick<RowEditorProps, 'status' | 'rowData'>) => {
 	const [rowState, setRowState] = useState({
 		status: props.status ?? 'view',
 		isExpanded: false,
@@ -122,7 +127,48 @@ export const RowEditor = (props: RowEditorProps) => {
 		}
 	};
 
-	// deprecated?
+	const context: RowContext = {
+		getRowIndex: () => rowState.data._id ?? myRowIndex,
+		getRowState: () => ({ ...rowState }),
+		getRowData: () => rowState.data,
+		getCellValue: (colId, defaultValue) =>
+			rowState.data[colId] ?? defaultValue,
+		setCellValue: (colId, value) => {
+			_setState({
+				data: {
+					...rowState.data,
+					[colId]: value,
+				},
+			});
+		},
+		setDataFrom: (map) => {
+			_setState((s) => {
+				return { ...s, data: { ...s.data, ...map } };
+			});
+		},
+		setStatus: (viewState) => {
+			_setState({ status: viewState });
+		},
+		toggleExpanded: () => {
+			_setState({ isExpanded: !rowState.isExpanded });
+		},
+		updateRowState: (state) => {
+			_setState(state);
+		},
+	};
+
+	return {
+		rowState,
+		context,
+		myRowIndex,
+	};
+};
+
+export const RowEditor = (props: RowEditorProps) => {
+	const { columns } = props;
+	const { rowState, myRowIndex, context } = useRowState(props);
+	const { isAdd, isView, isEdit } = getEditorStateFlags({ readOnly: props.readOnly, flash: rowState.data['__flash'], status: rowState.status });
+
 	const RowSpanAllCols = (
 		props: { isError?: boolean } & React.PropsWithChildren
 	) => {
@@ -161,41 +207,6 @@ export const RowEditor = (props: RowEditorProps) => {
 		</>
 	);
 
-	const context: RowContext = {
-		getRowIndex: () => rowState.data._id ?? myRowIndex,
-		getRowState: () => ({ ...rowState }),
-		getRowData: () => rowState.data,
-		getCellValue: (colId, defaultValue) =>
-			rowState.data[colId] ?? defaultValue,
-		setCellValue: (colId, value) => {
-			_setState({
-				data: {
-					...rowState.data,
-					[colId]: value,
-				},
-			});
-		},
-		setDataFrom: (map) => {
-			_setState((s) => {
-				return { ...s, data: { ...s.data, ...map } };
-			});
-		},
-		setStatus: (viewState) => {
-			_setState({ status: viewState });
-		},
-		toggleExpanded: () => {
-			_setState({ isExpanded: !rowState.isExpanded });
-		},
-		updateRowState: (state) => {
-			_setState(state);
-		},
-	};
-
-	const readOnly = props.readOnly ?? false;
-	const isView = readOnly || rowState.status == 'view';
-	const isEdit = !readOnly && rowState.status == 'edit';
-	const isAdd = !readOnly && rowState.status == 'add';
-
 	return (
 		<>
 			<Row
@@ -219,7 +230,7 @@ export const RowEditor = (props: RowEditorProps) => {
 						colDef={props.colsMap[col.id]}
 						rowData={rowState.data}
 						id={col.id}
-						status={rowState.status}
+						status={isAdd ? 'add' : ( isEdit ? 'edit' : 'view')}
 						validationError={rowState.errorMap?.[col.id]}
 					/>
 				))}

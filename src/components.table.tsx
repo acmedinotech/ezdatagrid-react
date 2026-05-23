@@ -1,12 +1,13 @@
-import { createContext, useEffect, useState } from 'react';
+import { createContext, useEffect, useRef, useState } from 'react';
 import { TableAddRowButton } from './components.rowTools';
 import { Cell, CellEdit, CellEditor } from './components.cell';
 import { Select } from './components.formControls';
-import { Row, RowEditor } from './components.row';
+import { Row, RowEditor, useRowState } from './components.row';
 import {
 	asHtmlElement,
 	collectFormRowData,
 	LogicalOperatorOptions,
+	normalizeKeyUp,
 	rollMapIntoFlatKeys,
 	SortOptions,
 	unrollFlatMapKeys,
@@ -24,6 +25,8 @@ import {
 	StructEZDataGridState,
 	StructRecordAny,
 } from './types';
+import { Modal } from './components.utility';
+import { useBulkEditor } from './components.bulkEditor';
 
 export const getOverlayedColumnDefs = (
 	colDefs: ColumnDef[],
@@ -109,8 +112,8 @@ export const EZDGTableContextProvider = createContext<EZDGTableContext>({
 		throw new Error('Function not implemented.');
 	},
 	getHiddenValues: () => ({}),
-	addNewRow: () => {},
-	setUiOverlays: () => {},
+	addNewRow: () => { },
+	setUiOverlays: () => { },
 	getUiOverlays: () => {
 		throw new Error('Function not implemented.');
 	},
@@ -126,7 +129,7 @@ export const TableHeaderToolbarRow = ({
 	totalColumns: number;
 }) => {
 	const [tbarState, setTbarState] = useState({
-		isExpanded: true,
+		isExpanded: false,
 		searchParams: { filters: {}, sorts: {}, operators: {} } as SearchParams,
 		formData: {} as StructRecordAny,
 	});
@@ -331,6 +334,7 @@ export const TableHeaderToolbarRow = ({
 				columns={totalColumns}
 				hide={!isExpanded}
 				className={styles['toolbar-float']}
+				rowIndex={'tableheader-toolbar'}
 			>
 				<CellRowTools />
 				{Object.entries(normColsMap).map(([colId, def]) => (
@@ -341,8 +345,15 @@ export const TableHeaderToolbarRow = ({
 	);
 };
 
-export const TableFooterToolbar = (props: EZDGTableContext) => {
-	return null;
+export const TableFooterToolbar = (props: EZDataGridProps & { tableContext: EZDGTableContext; BulkEditAllBar?: (() => React.ReactNode) }) => {
+	return <Row>
+		<CellEdit colSpan={12} rowContext={EMPTY_ROW_CONTEXT}>
+			<div data-ezdg-toolbar>{props.BulkEditAllBar?.()}
+				<TableAddRowButton
+					{...props}
+				/></div>
+		</CellEdit>
+	</Row>;
 };
 
 export const EZDataGrid = ({
@@ -384,7 +395,7 @@ export const EZDataGrid = ({
 				.catch((error) => {
 					_setState({ loadState: 3, error });
 				})
-				.finally(() => {});
+				.finally(() => { });
 		},
 		paginate: async (params) => {
 			// @todo
@@ -399,7 +410,6 @@ export const EZDataGrid = ({
 			});
 		},
 		setUiOverlays: (p) => {
-			console.log('setUiOverlays -> ', p);
 			_setState({
 				uiOverlays: {
 					...tableState.uiOverlays,
@@ -425,9 +435,20 @@ export const EZDataGrid = ({
 
 	const totalColumns = context.getColumnsWidth();
 
+	const bulkEditor = useBulkEditor(props);
+
 	return (
 		<EZDGTableContextProvider.Provider value={context}>
-			<div className={styles['ezdatagrid']}>
+			<div className={styles['ezdatagrid']} onKeyUp={(e) => {
+				if (e.ctrlKey && e.altKey && e.code === 'KeyA') {
+					e.preventDefault();
+					e.stopPropagation();
+					e.currentTarget.querySelector('button[data-ezdg-action="$table_add-row"]')?.click();
+				}
+				// @todo copy
+				// @todo paste
+				// @todo bulk-edit
+			}}>
 				<div data-ezdg-table>
 					<TableHeaderToolbarRow
 						colsMap={colsMap}
@@ -441,17 +462,14 @@ export const EZDataGrid = ({
 							colsMap={colsMap}
 							rowData={_row as StructRecordAny}
 							columns={totalColumns}
+							toggleBulkFn={bulkEditor.makeToggleFn(_row._id ?? index)}
 						></RowEditor>
 					))}
-
-					<Row>
-						<CellEdit colSpan={12} rowContext={EMPTY_ROW_CONTEXT}>
-							<TableAddRowButton
-								{...props}
-								tableContext={context}
-							/>
-						</CellEdit>
-					</Row>
+					<TableFooterToolbar
+						{...props}
+						tableContext={context}
+						BulkEditAllBar={bulkEditor.BulkEditAllBar}
+					/>
 				</div>
 			</div>
 		</EZDGTableContextProvider.Provider>
